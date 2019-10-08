@@ -1,11 +1,30 @@
 #!/bin/bash
+while :
+do
+    echo
+    echo " _________________________________________"
+    echo "|Which action would you like to perform?  |"
+    echo "|[1] Create new logged file               |"
+    echo "|[2] Open file                            |"
+    echo "|[0] Exit                                 |"
 
-echo "Which action would you like to perform?"
-echo "[1] Create new logged file"
-echo "[2] Open file"
-echo "[0] Exit"
+    read -p "Enter a Number: " num
 
-read -p "Enter a Number" num
+    case $num in
+        1)
+        #Create File
+        read -p "Please enter the name of your file: " filename
+        echo "Your file will be stored in /Repository"
+        mkdir Repository
+        touch Repository/"$filename.txt"
 
-case &num in 
-    1)
+        #Open File?
+
+
+        ;;
+        2)
+        ;;
+        0)exit 0;;
+        *)echo;echo "INVALID INPUT";;
+    esac
+done
