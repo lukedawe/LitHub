@@ -1,4 +1,16 @@
 #!/bin/bash
+
+createFile(){
+    #Create File
+    echo "Your file will be stored in /Repository"
+    mkdir Repository
+    touch Repository/"$1.txt"
+}
+
+editFile(){
+    Repository/"$1.txt"
+}
+
 while :
 do
     echo
@@ -12,15 +24,9 @@ do
 
     case $num in
         1)
-        #Create File
         read -p "Please enter the name of your file: " filename
-        echo "Your file will be stored in /Repository"
-        mkdir Repository
-        touch Repository/"$filename.txt"
-
-        #Open File?
-
-
+        createFile filename
+        editFile filename
         ;;
         2)
         ;;
