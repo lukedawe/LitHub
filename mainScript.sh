@@ -2,17 +2,18 @@
 
 checkOut(){
     ls
-    read -p "Please enter the name of the file that you would like to check out" filename
+    read -p "Please enter the file you would like to checkout: " filename
     if [ -f $filename ]
     then
-        cp $filename checkedOut
+        cp $filename .checkedOut
         chmod 444 $filename
         currentDate=`date`
-        echo "FILE_CHECKED_OUT $filename $currentDate" >> log.txt
-        cd checkedOut 
-        chmod 0744 $filename
+        echo "FILE_CHECKED_OUT by $User $filename $currentDate" >> log.txt
+        cd .checkedOut 
+        chmod 0744 $filename    
         nano $filename
-        cp $filename .. 
+        cp $filename ..
+        echo "FILE_CHECKED_IN $filename $currentDate" >> log.txt
         cd ..
     else
         echo "A file with this name was not found :()"
@@ -33,12 +34,10 @@ createRepo(){
         read -p "Open/Create a new file in this repository? [y/n]: " answer
         if [[ $answer =~ ^[Yy]$ ]]
         then
-            read -p "Filename to edit: " answer
+            read -p "Filename: " answer
             touch $answer
-            echo "++++++++++++++"
-            echo "OPENING EDITOR"
-            echo "++++++++++++++"
             echo
+            echo "FILES IN REPO $Repository"
             checkOut $answer
         else
             echo "guess not..."
@@ -65,7 +64,7 @@ do
     echo " _________________________________________"
     echo "|Which action would you like to perform?  |"
     echo "|[1] Create new repository                |"
-    echo "|[2] Create a new file                    |"
+    echo "|[2] Open repository                      |"
     echo "|[0] Exit                                 |"
 
     read -p "Enter a Number: " num
@@ -75,10 +74,21 @@ do
         createRepo
         ;;
         2)
-        read -p "Please enter the name of your file: " filename
-        createFile filename 
-        ;;
-        0)exit 0;;
-        *)echo;echo "INVALID INPUT";;
+        read -p "Please enter the name of your repository: " answer
+
+        if [-d "$answer" ]
+        then
+
+            echo " _________________________________________"
+            echo "|Which action would you like to perform?  |"
+            echo "|[1] Checkout a file                      |"
+            echo "|[2] Ammend Log                           |"
+            echo "|[0] Exit                                 |"
+
+            read -p "Enter a Number: " num
+            
+            ;;
+            0)exit 0;;
+            *)echo;echo "INVALID INPUT";;
     esac
 done
