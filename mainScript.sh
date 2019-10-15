@@ -1,5 +1,24 @@
 #!/bin/bash
 
+checkOut(){
+    ls
+    read -p "Please enter the name of the file that you would like to check out" filename
+    if [ -f $filename ]
+    then
+        cp $filename checkedOut
+        chmod 444 $filename
+        currentDate=`date`
+        echo "FILE_CHECKED_OUT $filename $currentDate" >> log.txt
+        cd checkedOut 
+        chmod 0744 $filename
+        nano $filename
+        cp $filename .. 
+        cd ..
+    else
+        echo "A file with this name was not found :()"
+    fi
+}
+
 createRepo(){
     read -p "Please enter the name of your new repository: " Repository
     if [ ! -d "$Repository" ]
@@ -9,7 +28,7 @@ createRepo(){
         touch log.txt
         currentDate=`date`
         echo "REPOSITORYCREATED: $Repository $currentDate" >> log.txt
-        mkdir checkedOut 
+        mkdir .checkedOut 
 
         read -p "Open/Create a new file in this repository? [y/n]: " answer
         if [[ $answer =~ ^[Yy]$ ]]
@@ -20,7 +39,7 @@ createRepo(){
             echo "OPENING EDITOR"
             echo "++++++++++++++"
             echo
-            "${EDITOR:-vim}" $answer
+            checkOut $answer
         else
             echo "guess not..."
         fi
