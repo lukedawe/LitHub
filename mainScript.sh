@@ -2,27 +2,42 @@
 
 createRepo(){
     read -p "Please enter the name of your new repository: " Repository
-    if[ -d "$Repository" ]; then
+    if [ ! -d "$Repository" ]
+    then
         mkdir $Repository
         cd $Repository/
         touch log.txt
+        currentDate=`date`
+        echo "REPOSITORYCREATED: $Repository $currentDate" >> log.txt
         mkdir checkedOut 
+
+        read -p "Open/Create a new file in this repository? [y/n]: " answer
+        if [[ $answer =~ ^[Yy]$ ]]
+        then
+            read -p "Filename to edit: " answer
+            touch $answer
+            echo "++++++++++++++"
+            echo "OPENING EDITOR"
+            echo "++++++++++++++"
+            echo
+            "${EDITOR:-vim}" $answer
+        else
+            echo "guess not..."
+        fi
+        cd ..
     else
-        echo "can't create a repository with this name"
+        echo "can't create a repository with this name (already exists?)"
     fi
-    
-
-
-    
-
-
-    read -p "Open/Create a new file in this repository? [y/n]" 
 }
 
 createFile(){
     #Create File
-    echo "Your file will be stored in /Repository"
-    touch Repository/"$1.txt"
+    if [ -f $1]
+    then
+        touch $1
+    else
+        echo "This file already exists, enter a unique name"
+    fi
 }
 
 while :
@@ -38,7 +53,7 @@ do
 
     case $num in
         1)
-        createRepo()
+        createRepo
         ;;
         2)
         read -p "Please enter the name of your file: " filename
