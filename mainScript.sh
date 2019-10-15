@@ -1,5 +1,4 @@
 #!/bin/bash
-
 checkOut(){
     ls
     read -p "Please enter the name of the file that you would like to check out" filename
@@ -9,11 +8,12 @@ checkOut(){
         chmod 444 $filename
         currentDate=`date`
         echo "FILE_CHECKED_OUT $filename $currentDate" >> log.txt
-        cd /checkedOut $filename
+        cd checkedOut
         chmod 0744 $filename
         nano $filename
-        cp $filename .. 
+        sudo cp $filename ..
         cd ..
+        chmod 0777 $filename
     else
         echo "A file with this name was not found :()"
     fi
