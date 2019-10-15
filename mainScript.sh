@@ -29,6 +29,7 @@ checkOut(){
         cd ..
         echo "FILE_CHECKED_IN by $USER $filename $currentDate" >> log.txt
         updateLog
+        cd ..
     else
         echo "A file with this name was not found :()"
     fi
@@ -96,13 +97,13 @@ do
         createRepo
         ;;
         2)
-        read -p "Please enter the name of your repository: " answer
+        read -p "Please enter the name of your repository: " repository
 
-        if [ -d "$answer" ]
+        if [ -d "$repository" ]
         then
             while :
             do
-                cd $answer
+                cd $repository
                 echo
                 echo "REPOSITORY CONTENTS"
                 ls
