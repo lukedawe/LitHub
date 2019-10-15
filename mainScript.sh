@@ -1,5 +1,18 @@
 #!/bin/bash
 
+updateLog(){
+    read -p "Add an extra comment to the log [y/n]: " answer
+    echo
+        if [[ $answer =~ ^[Yy]$ ]]
+        then
+            read -p "What is your comment? " comment
+            echo
+            echo "$comment" >> log.txt
+        else
+            echo "guess not..."
+        fi
+}
+
 checkOut(){
     ls
     read -p "Please enter the file you would like to checkout: " filename
@@ -8,13 +21,14 @@ checkOut(){
         cp $filename .checkedOut
         chmod 444 $filename
         currentDate=`date`
-        echo "FILE_CHECKED_OUT by $User $filename $currentDate" >> log.txt
+        echo "FILE_CHECKED_OUT by $USER $filename $currentDate" >> log.txt
         cd .checkedOut 
         chmod 0744 $filename    
         nano $filename
-        cp $filename ..
-        echo "FILE_CHECKED_IN $filename $currentDate" >> log.txt
+        sudo cp $filename ..
         cd ..
+        echo "FILE_CHECKED_IN by $USER $filename $currentDate" >> log.txt
+        updateLog
     else
         echo "A file with this name was not found :()"
     fi
@@ -32,13 +46,11 @@ createRepo(){
         mkdir .checkedOut 
 
         read -p "Open/Create a new file in this repository? [y/n]: " answer
+
         if [[ $answer =~ ^[Yy]$ ]]
         then
             read -p "Filename: " answer
             touch $answer
-            echo
-            echo "FILES IN REPO $Repository"
-            checkOut $answer
         else
             echo "guess not..."
         fi
@@ -49,6 +61,16 @@ createRepo(){
 }
 
 createFile(){
+    #Create File
+    if [ -f $1]
+    then
+        touch $1
+    else
+        echo "This file already exists, enter a unique name"
+    fi
+}
+
+deleteFile(){
     #Create File
     if [ -f $1]
     then
@@ -76,19 +98,34 @@ do
         2)
         read -p "Please enter the name of your repository: " answer
 
-        if [-d "$answer" ]
+        if [ -d "$answer" ]
         then
+            while :
+            do
+                cd $answer
+                echo
+                echo "REPOSITORY CONTENTS"
+                ls
+                echo " _________________________________________"
+                echo "|Which action would you like to perform?  |"
+                echo "|[1] Checkout a file                      |"
+                echo "|[2] Create file                          |"
+                echo "|[3] Delete file                          |"
+                echo "|[4] Show repository                      |"
+                echo "|[0] Exit                                 |"
 
-            echo " _________________________________________"
-            echo "|Which action would you like to perform?  |"
-            echo "|[1] Checkout a file                      |"
-            echo "|[2] Ammend Log                           |"
-            echo "|[0] Exit                                 |"
-
-            read -p "Enter a Number: " num
-            
-            ;;
-            0)exit 0;;
-            *)echo;echo "INVALID INPUT";;
+                read -p "Enter a Number: " num
+                case $num in
+                    1)checkOut;;
+                    2)createFile SOMETHING;;
+                    3)echo "THIS WILL DELETE FILE";;
+                    4)echo;ls;;
+                    0)exit 0;;
+                    *)echo;echo "INVALID INPUT";;
+                esac
+            done
+        else
+            echo "Repository doesn't exist"
+        fi
     esac
 done
