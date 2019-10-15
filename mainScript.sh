@@ -1,5 +1,18 @@
 #!/bin/bash
 
+updateLog(){
+    read -p "Add an extra comment to the log [y/n]: " answer
+    echo
+        if [[ $answer =~ ^[Yy]$ ]]
+        then
+            read -p "What is your comment? " comment
+            echo
+            echo "$comment" >> log.txt
+        else
+            echo "guess not..."
+        fi
+}
+
 checkOut(){
     ls
     read -p "Please enter the file you would like to checkout: " filename
@@ -14,6 +27,7 @@ checkOut(){
         nano $filename
         cp $filename ..
         echo "FILE_CHECKED_IN $filename $currentDate" >> log.txt
+        updateLog
         cd ..
     else
         echo "A file with this name was not found :()"
