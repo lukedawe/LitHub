@@ -1,4 +1,24 @@
 #!/bin/bash
+
+checkOut(){
+    ls
+    read -p "Please enter the name of the file that you would like to check out" filename
+    if [ -f $filename ]
+    then
+        cp $filename checkedOut
+        chmod 444 $filename
+        currentDate=`date`
+        echo "FILE_CHECKED_OUT $filename $currentDate" >> log.txt
+        cd /checkedOut $filename
+        chmod 0744 $filename
+        nano $filename
+        cp $filename .. 
+        cd ..
+    else
+        echo "A file with this name was not found :()"
+    fi
+}
+
 while :
 do
     echo
@@ -23,8 +43,11 @@ do
 
         ;;
         2)
+        checkOut filename
         ;;
         0)exit 0;;
         *)echo;echo "INVALID INPUT";;
     esac
 done
+
+
