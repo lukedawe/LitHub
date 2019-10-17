@@ -25,9 +25,10 @@ checkOut(){
         cd .checkedOut 
         chmod 0744 $filename    
         nano $filename
+        read -p "Enter a comment for the log file:" logEntry
         sudo cp $filename ..
         cd ..
-        echo "FILE_CHECKED_IN by $USER $filename $currentDate" >> log.txt
+        echo "FILE_CHECKED_IN by $USER $filename on $currentDate with comment $logEntry" >> log.txt
         updateLog
         cd ..
     else
@@ -63,7 +64,7 @@ createRepo(){
 
 createFile(){
     #Create File
-    if [ -f $1]
+    if [ -f $1 ]
     then
         touch $1
     else
@@ -72,12 +73,15 @@ createFile(){
 }
 
 deleteFile(){
-    #Create File
-    if [ -f $1]
+    #Delete file
+    if [ -f $1 ]
     then
-        touch $1
+        read -p "Are you sure that you would like to remove this file? [y/n]: " answer
+        if [[ $answer =~ ^[Yy]$ ]]
+            rm $1
     else
-        echo "This file already exists, enter a unique name"
+        echo "This file was not found, please make sure that"
+        echo "you have entered the name of a file that is valid."
     fi
 }
 
