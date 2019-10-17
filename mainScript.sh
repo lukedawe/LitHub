@@ -3,23 +3,53 @@
 #function to restore from backup
 rollBack(){
     #select the backup folder and print off the contents
-    cd backups
+        cd backups
     echo BACKUP VERSIONS
-    ls 
+    #creating an array that assigns folders to an index for easy entering of names
+    declare -A array
+    i=0
+    for file in *
+    do
+        echo "[$i] $file"
+        array[$i]=$file
+        let "i =$i+1"
+    done
     echo
-    #select the repository and the file, then copy the file back to the repository
-    #file
+
+    #allows user to name of folder
     read -p "Please enter the name of the backup version: " repository
     if [ -d $repository ]; then
-        cd $repository
-        ls 
-        read -p "What file would you like to restore?: " restoreFile
-        if [ -f $restoreFile ]; then
-            cp $restoreFile ../../$restoreFile
-            currentTimeDate=`date`
-            cd ../..
-            echo "$restoreFile RESTORED AT $currentTimeDate" >> log.txt
-        fi
+            cd $repository
+            ls 
+            read -p "What file would you like to restore?: " restoreFile
+            if [ -f $restoreFile ]; then
+                cp $restoreFile ../../$restoreFile
+                currentTimeDate=`date`
+                cd ../..
+                echo "$restoreFile RESTORED by $USER AT $currentTimeDate" >> log.txt
+            else
+                echo "That file doesn't exist, returning to menu..."
+            fi
+    #allows user to enter index number of folder
+    elif [ -d ${array[$repository]} ]; then
+            len=${#array[@]}
+            let "len =$len-1"
+            if [[ "$repository" > "$len" ]]; then
+                echo "Invaild input"
+                cd ..
+            else
+                cd ${array[$repository]}
+                ls 
+                read -p "What file would you like to restore?: " restoreFile
+                if [ -f $restoreFile ]; then
+                    cp $restoreFile ../../$restoreFile
+                    currentTimeDate=`date`
+                    cd ../..
+                    echo "$restoreFile RESTORED by $USER AT $currentTimeDate" >> log.txt
+                else
+                    echo "That file doesn't exist, returning to menu..."
+                fi
+            fi
     else
         echo "Backup version does not exist"
         cd ..
@@ -31,7 +61,7 @@ zipProject(){
     if [ -d $1 ]; then
         #make a zip file of the directory or file and add that to the log
         currentTimeDate=`date`
-        echo "$1 ARCHIVED AT $currentTimeDate" >> $1/log.txt
+        echo "$1 ARCHIVED by $USER AT $currentTimeDate" >> $1/log.txt
         zip -r $1.zip $1
         rm -r $1
         echo
@@ -49,7 +79,7 @@ unzipProject(){
         unzip $1.zip
         rm $1.zip
         currentTimeDate=`date`
-        echo "FILE UNARCHIVED AT $currentTimeDate" >> $1/log.txt
+        echo "FILE UNARCHIVED by $USER AT $currentTimeDate " >> $1/log.txt
         echo
         echo "FILE UNZIPPED AND ZIP REMOVED"
     else
@@ -67,7 +97,7 @@ updateLog(){
         read -p "Add an extra comment to the log [y/n]: " answer
         case $answer in
             [Yy]* ) read -p "What is your comment? " comment
-                    echo "^^ USER COMMIT COMMENT $comment ^^" >> log.txt
+                    echo "^^ USER COMMIT COMMENT by $USER $comment ^^" >> log.txt
                     break;; 
             [Nn]* ) break;; 
             * ) echo "Please enter y/n";;
@@ -124,7 +154,7 @@ createRepo(){
         cd $Repository/
         touch log.txt
         currentDate=`date`
-        echo "REPOSITORYCREATED: $Repository $currentDate" >> log.txt
+        echo "REPOSITORYCREATED by $USER $Repository $currentDate" >> log.txt
         mkdir .checkedOut
         mkdir backups
         #allows the user to create a file in that new repository
@@ -154,7 +184,7 @@ createFile(){
     then
         touch $1
         currentDate=`date`
-        echo "CREATED FILE $1 $currentDate" >> log.txt
+        echo "CREATED FILE  $1 by $USER $currentDate" >> log.txt
     else
         echo "This file already exists, enter a unique name"
     fi
@@ -170,7 +200,7 @@ deleteFile(){
             case $answer in
                 [Yy]* ) rm $1
                     currentDate=`date`
-                    echo "DELETED FILE $1 $currentDate" >> log.txt
+                    echo "DELETED FILE $1 by $USER $currentDate" >> log.txt
                     break;;
                 [Nn]* ) break;;
                 * ) echo "Please enter y/n";;
