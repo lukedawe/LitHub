@@ -9,10 +9,10 @@ checkOut(){
         chmod 444 $filename
         currentDate=`date`
         echo "FILE_CHECKED_OUT $filename $currentDate" >> log.txt
-        cd /checkedOut $filename
+        cd checkedOut
         chmod 0744 $filename
         nano $filename
-        cp $filename .. 
+        sudo cp $filename ..
         cd ..
     else
         echo "A file with this name was not found :()"
