@@ -286,13 +286,24 @@ createFile(){
 
 #function to delete a file
 deleteFile(){
-    if [ -f $1 ]
+    #creating an array that assigns folders to an index for easy entering of names
+    declare -A array
+    i=0
+    for item in *
+    do
+        echo "[$i] $item"
+        array[$i]=$item
+        let "i =$i+1"
+    done
+
+ read -p "Please enter the name of the file: " file 
+    if [ -f $file ]
     then
         while true
         do
             read -p "Are you sure that you would like to remove this file? [y/n]: " answer
             case $answer in
-                [Yy]* ) rm $1
+                [Yy]* ) rm $file
                     currentDate=`date`
                     echo "DELETED FILE $1 by $USER AT $currentDate IN $currentBranch" >> ../log.txt
                     break;;
@@ -300,6 +311,25 @@ deleteFile(){
                 * ) echo "Please enter y/n";;
             esac
         done
+    elif [ -f ${array[$file]} ]; then
+            len=${#array[@]}
+            let "len =$len-1"
+            if [[ "$file" > "$len" ]]; then
+                echo "Invaild input"
+            else
+                while true
+                do
+                    read -p "Are you sure that you would like to remove this file? [y/n]: " answer
+                    case $answer in
+                        [Yy]* ) rm ${array[$file]}
+                            currentDate=`date`
+                            echo "DELETED FILE $1 by $USER AT $currentDate IN $currentBranch" >> ../log.txt
+                            break;;
+                        [Nn]* ) break;;
+                        * ) echo "Please enter y/n";;
+                    esac
+                done
+            fi
     else
         echo "This file was not found, please make sure that"
         echo "you have entered the name of a file that is valid."
@@ -389,10 +419,7 @@ do
                         read -p "Please enter the name of the file: " file
                         createFile $file
                         ;;
-                        3)
-                        ls
-                        read -p "Please enter the name of the file: " file
-                        deleteFile $file;;
+                        3)deleteFile;;
                         4)echo;ls;;
                         5)rollBack;;
                         6)
