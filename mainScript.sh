@@ -2,14 +2,16 @@
 
 makeNewBranch(){
     echo "List of existing branches"
-    ls ..
-    read -p "Please enter the name of the branch you would like to branch out from " branch
+    find .. -mindepth 1 -maxdepth 1 -type d
+    read -p "Please enter the name of the branch you would like to branch out from: " branch
     if [ -d ../$branch ]; then
-        read -p "Please enter the name of the new branch " newBranch
+        read -p "Please enter the name of the new branch: " newBranch
         if [ ! -d ../$newBranch ]; then
             cp -r ../$branch ../$newBranch
+            currentBranch=$newBranch
             cd ../$newBranch
-            echo "New branch created" >> log.txt
+            currentTimeDate=`date`
+            echo "BRANCH $newBranch CREATED BY $USER AT $currentTimeDate" >> ../log.txt
         else
             echo "This branch already exists, please enter a name that is not the same as an existing branch"
         fi
@@ -20,14 +22,15 @@ makeNewBranch(){
 
 mergeBranch(){
     echo "List of existing branches"
-    ls ..
-    read -p "Please enter the name of the branch you would like to merge into " keepBranch
-    read -p "Please enter the name of the branch you would like to merge (this branch will be automatically deleted) " deleteBranch
+    find .. -mindepth 1 -maxdepth 1 -type d
+    read -p "Please enter the name of the branch you would like to merge into: " keepBranch
+    read -p "Please enter the name of the branch you would like to merge (this branch will be automatically deleted): " deleteBranch
     if [ -d ../$keepBranch ] && [ -d ../$deleteBranch ]; then
         rm -r ../$keepBranch/*
         cp -r ../$deleteBranch/. ../$keepBranch
         cd ..
         rm -r $deleteBranch
+        currentBranch=$keepBranch
         cd $keepBranch
     else
         echo "One of the referenced branches does not exist"
@@ -35,11 +38,13 @@ mergeBranch(){
 }
 
 selectBranch(){
+    echo 
     echo "List of directories outside of the current branch"
-    ls ..
-    read -p "Please enter the name of the branch you would like to select" selectedBranch
+    find .. -mindepth 1 -maxdepth 1 -type d
+    read -p "Please enter the name of the branch you would like to select: " selectedBranch
     if [ -d ../$selectedBranch ]; then
         cd ../$selectedBranch
+        currentBranch=$selectedBranch
     else
         echo "This branch does not exist"
     fi
@@ -48,13 +53,32 @@ selectBranch(){
 deleteBranch(){
     echo "List of branches"
     cd ..
-    ls
-    read -p "Please enter the name of the branch you would like to delete" branchToDelete
-    if [ -d $selectedBranch ]; then
-        rm $selectedBranch
+    ls -d */ | sed -e 's/\/$//' 
+    read -p "Please enter the name of the branch you would like to delete: " branchToDelete
+    if [ $branchToDelete = "master" ]; then
+        echo
+        echo "MASTER CANNOT BE DELETED"
+        cd master
+        return
+    fi
+    if [ -d $branchToDelete ]; then
+        while true
+        do
+            read -p "Are you sure that you would like to remove the branch $branchToDelete?[y/n]: " answer
+            case $answer in
+                [Yy]* ) rm -r $branchToDelete
+                    currentDate=`date`
+                    echo "DELETED BRANCH $branchToDelete by $USER AT $currentDate" >> log.txt
+                    break;;
+                [Nn]* ) break;;
+                 * ) echo "Please enter y/n";;
+            esac
+        done
+            
     else
         echo "A branch of that name does not exist"
     fi
+    cd master
     selectBranch
 }
 
@@ -84,7 +108,7 @@ rollBack(){
                 cp $restoreFile ../../$restoreFile
                 currentTimeDate=`date`
                 cd ../..
-                echo "$restoreFile RESTORED by $USER AT $currentTimeDate" >> log.txt
+                echo "$restoreFil*/e RESTORED BY $USER AT $currentTimeDate IN $currentBranch" >> ../log.txt
             else
                 echo "That file doesn't exist, returning to menu..."
             fi
@@ -103,7 +127,7 @@ rollBack(){
                     cp $restoreFile ../../$restoreFile
                     currentTimeDate=`date`
                     cd ../..
-                    echo "$restoreFile RESTORED by $USER AT $currentTimeDate" >> log.txt
+                    echo "$restoreFile RESTORED BY $USER AT $currentTimeDate IN $currentBranch" >> ../log.txt
                 else
                     echo "That file doesn't exist, returning to menu..."
                 fi
@@ -119,7 +143,7 @@ zipProject(){
     if [ -d $1 ]; then
         #make a zip file of the directory or file and add that to the log
         currentTimeDate=`date`
-        echo "$1 ARCHIVED by $USER AT $currentTimeDate" >> $1/log.txt
+        echo "$1 ARCHIVED BY $USER AT $currentTimeDate" >> $1/log.txt
         zip -r $1.zip $1
         rm -r $1
         echo
@@ -137,7 +161,7 @@ unzipProject(){
         unzip $1.zip
         rm $1.zip
         currentTimeDate=`date`
-        echo "FILE UNARCHIVED by $USER AT $currentTimeDate " >> $1/log.txt
+        echo "FILE UNARCHIVED BY $USER AT $currentTimeDate " >> $1/log.txt
         echo
         echo "FILE UNZIPPED AND ZIP REMOVED"
     else
@@ -155,7 +179,7 @@ updateLog(){
         read -p "Add an extra comment to the log [y/n]: " answer
         case $answer in
             [Yy]* ) read -p "What is your comment? " comment
-                    echo "^^ USER COMMIT COMMENT by $USER $comment ^^" >> log.txt
+                    echo "USER COMMIT COMMENT BY $USER $comment" >> ../log.txt
                     break;; 
             [Nn]* ) break;; 
             * ) echo "Please enter y/n";;
@@ -184,7 +208,7 @@ checkOut(){
         cp $filename .checkedOut
         chmod 444 $filename
         currentTimeDate=`date`
-        echo "FILE_CHECKED_OUT by $USER $filename $currentTimeDate" >> log.txt
+        echo "FILE_CHECKED_OUT BY $USER $filename AT $currentTimeDate IN $currentBranch" >> ../log.txt
         cd .checkedOut 
         chmod 0744 $filename    
         #lets the user edit the file and once the user saves the changes, sets the permissions
@@ -202,7 +226,7 @@ checkOut(){
         cd ..
         currentTimeDate=`date`
         #updates the log and allows the user to add a comment
-        echo "FILE_CHECKED_IN by $USER $filename on $currentTimeDate and backed to /backups/$currentDate" >> log.txt
+        echo "FILE_CHECKED_IN BY $USER $filename AT $currentTimeDate AND BACKED TO /backups/$currentDate IN $currentBranch" >> ../log.txt
         updateLog
     else
         echo "A file with this name was not found :()"
@@ -219,9 +243,10 @@ createRepo(){
         mkdir $Repository
         cd $Repository/
         mkdir master
-        touch master/log.txt
+        touch log.txt
+        currentBranch=master
         currentDate=`date`
-        echo "REPOSITORYCREATED by $USER $Repository $currentDate" >> master/log.txt
+        echo "REPOSITORYCREATED BY $USER IN $Repository AT $currentDate" >> log.txt
         mkdir master/.checkedOut
         mkdir master/backups
         #allows the user to create a file in that new repository
@@ -230,7 +255,9 @@ createRepo(){
             read -p "Create a new file in this repository? [y/n]: " answer
             case $answer in
                 [Yy]* ) read -p "Filename: " answer
-                        createFile master/$answer
+                        cd master
+                        createFile $answer
+                        cd ..
                         break;;
                 [Nn]* ) break;;
                 * ) echo "Please enter y/n";;
@@ -251,7 +278,7 @@ createFile(){
     then
         touch $1
         currentDate=`date`
-        echo "CREATED FILE  $1 by $USER $currentDate" >> log.txt
+        echo "CREATED FILE  $1 BY $USER AT $currentDate IN $currentBranch" >> ../log.txt
     else
         echo "This file already exists, enter a unique name"
     fi
@@ -267,7 +294,7 @@ deleteFile(){
             case $answer in
                 [Yy]* ) rm $1
                     currentDate=`date`
-                    echo "DELETED FILE $1 by $USER $currentDate" >> log.txt
+                    echo "DELETED FILE $1 by $USER AT $currentDate IN $currentBranch" >> ../log.txt
                     break;;
                 [Nn]* ) break;;
                 * ) echo "Please enter y/n";;
@@ -329,28 +356,30 @@ do
         if [ -d "$repository" ];then
             cd $repository
             echo "List of available branches"
-            ls
-            read -p "Please enter the name of the branch you would like to enter " chosenBranch
-            if [ -d $chosenBranch ];then
+            ls -d */ | sed -e 's/\/$//'
+            echo
+            read -p "Please enter the name of the branch you would like to enter: " chosenBranch
+            if [ -d $chosenBranch ] && [ "$chosenBranch" != "" ];then
                 cd $chosenBranch
+                currentBranch=$chosenBranch
                 while :
                 do
                     echo
-                    echo "BRANCH CONTENTS"
+                    echo "BRANCH CONTENTS $currentBranch"
                     ls
                     echo " _________________________________________"
                     echo "|Which action would you like to perform?  |"
                     echo "|[1] Checkout a file                      |"
                     echo "|[2] Create file                          |"
                     echo "|[3] Delete file                          |"
-                    echo "|[4] Show branch                          |"
+                    echo "|[4] Show branch contents                 |"
                     echo "|[5] Restore backup                       |"
+                    echo "|                                         |"
                     echo "|[6] Create new branch                    |"
                     echo "|[7] Merge branch                         |"
-                    echo "|[8] View branch                          |"
+                    echo "|[8] Select branch                        |"
                     echo "|[9] Delete branch                        |"
                     echo "|[0] Close repository                     |"
-
                     read -p "Enter a Number: " num
                     case $num in
                         1)checkOut
@@ -378,12 +407,13 @@ do
                         9)
                         deleteBranch
                         ;;
-                        0)cd ..;break;;
+                        0)cd ../..;break;;
                         *)echo;echo "INVALID INPUT";;
                     esac
                 done    
             else
                 echo "A branch with this name does not exist"
+                cd ..
             fi
         else
             echo "Repository doesn't exist"
@@ -408,7 +438,7 @@ do
         ls -d */ | sed -e 's/\/$//' 
         echo
         read -p "Please enter the name of the repository you would like to delete: " repoToDelete
-        deleteRepo repoToDelete
+        deleteRepo $repoToDelete
         ;;
         0)exit 0;;
         *)echo;echo "INVALID INPUT";;
