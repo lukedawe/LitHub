@@ -1,12 +1,16 @@
 #!/bin/bash
 
+# function to make a new branch
 makeNewBranch(){
+    #prints the existing branches, one of them has to be used as a source
     echo "List of existing branches"
     find .. -mindepth 1 -maxdepth 1 -type d
     read -p "Please enter the name of the branch you would like to branch out from: " branch
     if [ -d ../$branch ]; then
+    # asks the user for the name of the new branch, if a branch of that name does not exist then it creates the new branch
         read -p "Please enter the name of the new branch: " newBranch
         if [ ! -d ../$newBranch ]; then
+            #copies the branch, cd's to the new repository
             cp -r ../$branch ../$newBranch
             currentBranch=$newBranch
             cd ../$newBranch
@@ -20,26 +24,34 @@ makeNewBranch(){
     fi
 }
 
+#function to merge two branches
 mergeBranch(){
+    # prints off all the directories, asks the user for the name of the branch they would like to use to merge and merge into
     echo "List of existing branches"
     find .. -mindepth 1 -maxdepth 1 -type d
     read -p "Please enter the name of the branch you would like to merge into: " keepBranch
     read -p "Please enter the name of the branch you would like to merge (this branch will be automatically deleted): " deleteBranch
+    # if the two branches exist, remove all the files from one directory, copy the files from the other directory into that directory, 
+    # delete the first directory
     if [ -d ../$keepBranch ] && [ -d ../$deleteBranch ]; then
         rm -r ../$keepBranch/*
         cp -r ../$deleteBranch/. ../$keepBranch
         cd ..
         rm -r $deleteBranch
         currentBranch=$keepBranch
+        # select the keep branch
         cd $keepBranch
     else
         echo "One of the referenced branches does not exist"
     fi
 }
 
+# a function to select the branch the user would like to view and use
 selectBranch(){
     echo 
     echo "List of directories outside of the current branch"
+    # prints off all the directories, asks the user what option they would like to select
+    # if it exists, cd to that branch
     find .. -mindepth 1 -maxdepth 1 -type d
     read -p "Please enter the name of the branch you would like to select: " selectedBranch
     if [ -d ../$selectedBranch ]; then
@@ -50,17 +62,21 @@ selectBranch(){
     fi
 }
 
+# a function to delete a certain branch
 deleteBranch(){
+    # prints off all the branches, asks the user for input
     echo "List of branches"
     cd ..
     ls -d */ | sed -e 's/\/$//' 
     read -p "Please enter the name of the branch you would like to delete: " branchToDelete
+    # the user cannot delete the master branch
     if [ $branchToDelete = "master" ]; then
         echo
         echo "MASTER CANNOT BE DELETED"
         cd master
         return
     fi
+    # if the branch exists, delete the branch
     if [ -d $branchToDelete ]; then
         while true
         do
@@ -198,7 +214,16 @@ backup(){
 #function to check a file out for editing
 checkOut(){
     #prints out all the files and lets the user select which one to check out
-    ls
+    #creating an array that assigns folders to an index for easy entering of names
+    declare -A array
+    i=0
+    for file in *
+    do
+        echo "[$i] $file"
+        array[$i]=$file
+        let "i =$i+1"
+    done
+
     read -p "Please enter the file you would like to checkout: " filename
     if [ -f $filename ]
     then
@@ -228,6 +253,38 @@ checkOut(){
         #updates the log and allows the user to add a comment
         echo "FILE_CHECKED_IN BY $USER $filename AT $currentTimeDate AND BACKED TO /backups/$currentDate IN $currentBranch" >> ../log.txt
         updateLog
+     #allows user to enter index number of folder
+    elif [ -f ${array[$filename]} ]; then
+        len=${#array[@]}
+        let "len =$len-1"
+            if [[ "$filename" > "$len" ]]; then
+                echo "Invaild input"
+            else
+            cp ${array[$filename]} .checkedOut
+            chmod 444 ${array[$filename]}
+            currentTimeDate=`date`
+            echo "FILE_CHECKED_OUT BY $USER $filename AT $currentTimeDate IN $currentBranch" >> ../log.txt
+            cd .checkedOut 
+            chmod 0744 ${array[$filename]}   
+            #lets the user edit the file and once the user saves the changes, sets the permissions
+            #for the original file to rwx and copies it outside of the file.
+            #backs up the file and removes the file from the checkedOut folder.
+            nano ${array[$filename]}
+            chmod 0777 ../${array[$filename]}
+            cp ${array[$filename]} ..
+            currentDate=`date +%d-%b-%Y`
+                if [ ! -d ../backups/$currentDate ];then
+                    mkdir ../backups/$currentDate
+                fi
+            cp ${array[$filename]} ../backups/$currentDate
+            rm ${array[$filename]}
+            cd ..
+            currentTimeDate=`date`
+            #updates the log and allows the user to add a comment
+            echo "FILE_CHECKED_IN BY $USER $filename AT $currentTimeDate AND BACKED TO /backups/$currentDate IN $currentBranch" >> ../log.txt
+            updateLog
+            fi
+
     else
         echo "A file with this name was not found :()"
     fi
@@ -447,6 +504,7 @@ do
         fi
         ;;
         3)
+        # runs functions for the menu options
         echo "POSSIBLE REPOSITORIES TO ARCHIVE"
         ls -d */ | sed -e 's/\/$//' 
         echo
