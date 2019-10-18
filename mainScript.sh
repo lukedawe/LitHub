@@ -26,7 +26,9 @@ mergeBranch(){
     if [ -d ../$keepBranch ] && [ -d ../$deleteBranch ]; then
         rm -r ../$keepBranch/*
         cp -r ../$deleteBranch/. ../$keepBranch
-        cd ../$keepBranch
+        cd ..
+        rm -r $deleteBranch
+        cd $keepBranch
     else
         echo "One of the referenced branches does not exist"
     fi
