@@ -263,7 +263,7 @@ checkOut(){
             cp ${array[$filename]} .checkedOut
             chmod 444 ${array[$filename]}
             currentTimeDate=`date`
-            echo "FILE_CHECKED_OUT BY $USER $filename AT $currentTimeDate IN $currentBranch" >> ../log.txt
+            echo "FILE_CHECKED_OUT BY $USER ${array[$filename]} AT $currentTimeDate IN $currentBranch" >> ../log.txt
             cd .checkedOut 
             chmod 0744 ${array[$filename]}   
             #lets the user edit the file and once the user saves the changes, sets the permissions
@@ -281,7 +281,7 @@ checkOut(){
             cd ..
             currentTimeDate=`date`
             #updates the log and allows the user to add a comment
-            echo "FILE_CHECKED_IN BY $USER $filename AT $currentTimeDate AND BACKED TO /backups/$currentDate IN $currentBranch" >> ../log.txt
+            echo "FILE_CHECKED_IN BY $USER ${array[$filename]} AT $currentTimeDate AND BACKED TO /backups/$currentDate IN $currentBranch" >> ../log.txt
             updateLog
             fi
 
